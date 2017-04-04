@@ -232,6 +232,12 @@ func resourceVSphereVirtualMachine() *schema.Resource {
 				Computed: true,
 			},
 
+			"moid": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				Default: 0,
+			},
+
 			"custom_configuration_parameters": &schema.Schema{
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -897,7 +903,9 @@ func resourceVSphereVirtualMachineCreate(d *schema.ResourceData, meta interface{
 		log.Printf("[DEBUG] cdrom init: %v", cdroms)
 	}
 
-	err := vm.setupVirtualMachine(client)
+	// err := vm.setupVirtualMachine(client)
+	moid, err := vm.setupVirtualMachine(client)
+	d.Set("moid", moid)
 	if err != nil {
 		return err
 	}
@@ -1678,11 +1686,11 @@ func createCdroms(client *govmomi.Client, vm *object.VirtualMachine, datacenter 
 	return nil
 }
 
-func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
+func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) (string, error) {
 	dc, err := getDatacenter(c, vm.datacenter)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 	finder := find.NewFinder(c.Client, true)
 	finder = finder.SetDatacenter(dc)
@@ -1693,13 +1701,13 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 	if vm.template != "" {
 		template, err = finder.VirtualMachine(context.TODO(), vm.template)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		log.Printf("[DEBUG] template: %#v", template)
 
 		err = template.Properties(context.TODO(), template.Reference(), []string{"parent", "config.template", "config.guestId", "resourcePool", "snapshot", "guest.toolsVersionStatus2", "config.guestFullName"}, &template_mo)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -1708,25 +1716,25 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 		if vm.cluster == "" {
 			resourcePool, err = finder.DefaultResourcePool(context.TODO())
 			if err != nil {
-				return err
+				return nil, err
 			}
 		} else {
 			resourcePool, err = finder.ResourcePool(context.TODO(), "*"+vm.cluster+"/Resources")
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 	} else {
 		resourcePool, err = finder.ResourcePool(context.TODO(), vm.resourcePool)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 	log.Printf("[DEBUG] resource pool: %#v", resourcePool)
 
 	dcFolders, err := dc.Folders(context.TODO())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	log.Printf("[DEBUG] folder: %#v", vm.folder)
 
@@ -1736,9 +1744,9 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 		folderRef, err := si.FindByInventoryPath(
 			context.TODO(), fmt.Sprintf("%v/vm/%v", vm.datacenter, vm.folder))
 		if err != nil {
-			return fmt.Errorf("Error reading folder %s: %s", vm.folder, err)
+			return nil, fmt.Errorf("Error reading folder %s: %s", vm.folder, err)
 		} else if folderRef == nil {
-			return fmt.Errorf("Cannot find folder %s", vm.folder)
+			return nil, fmt.Errorf("Cannot find folder %s", vm.folder)
 		} else {
 			folder = folderRef.(*object.Folder)
 		}
@@ -1784,7 +1792,7 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 	if vm.datastore == "" {
 		datastore, err = finder.DefaultDatastore(context.TODO())
 		if err != nil {
-			return err
+			return nil, err
 		}
 	} else {
 		datastore, err = finder.Datastore(context.TODO(), vm.datastore)
@@ -1792,7 +1800,7 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 			// TODO: datastore cluster support in govmomi finder function
 			d, err := getDatastoreObject(c, dcFolders, vm.datastore)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			if d.Type == "StoragePod" {
@@ -1809,7 +1817,7 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 
 				datastore, err = findDatastore(c, sps)
 				if err != nil {
-					return err
+					return nil, err
 				}
 			} else {
 				datastore = object.NewDatastore(c.Client, d)
@@ -1832,7 +1840,7 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 		}
 		nd, err := buildNetworkDevice(finder, network.label, networkDeviceType, network.macAddress)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		log.Printf("[DEBUG] network device: %+v", nd.Device)
 		networkDevices = append(networkDevices, nd)
@@ -1843,7 +1851,7 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 				ipSetting.Ip = &types.CustomizationDhcpIpGenerator{}
 			} else {
 				if network.ipv4PrefixLength == 0 {
-					return fmt.Errorf("Error: ipv4_prefix_length argument is empty.")
+					return nil, fmt.Errorf("Error: ipv4_prefix_length argument is empty.")
 				}
 				m := net.CIDRMask(network.ipv4PrefixLength, 32)
 				sm := net.IPv4(m[0], m[1], m[2], m[3])
@@ -1895,7 +1903,7 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 	if vm.template == "" {
 		var mds mo.Datastore
 		if err = datastore.Properties(context.TODO(), datastore.Reference(), []string{"name"}, &mds); err != nil {
-			return err
+			return nil, err
 		}
 		log.Printf("[DEBUG] datastore: %#v", mds.Name)
 		scsi, err := object.SCSIControllerTypes().CreateSCSIController("scsi")
@@ -1924,7 +1932,7 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 
 		relocateSpec, err := buildVMRelocateSpec(resourcePool, datastore, template, vm.linkedClone, vm.hardDisks[0].initType)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		log.Printf("[DEBUG] relocate spec: %v", relocateSpec)
@@ -1938,7 +1946,7 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 		}
 		if vm.linkedClone {
 			if template_mo.Snapshot == nil {
-				return fmt.Errorf("`linkedClone=true`, but image VM has no snapshots")
+				return nil, fmt.Errorf("`linkedClone=true`, but image VM has no snapshots")
 			}
 			cloneSpec.Snapshot = template_mo.Snapshot.CurrentSnapshot
 		}
@@ -1946,7 +1954,7 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 
 		task, err = template.Clone(context.TODO(), folder, vm.name, cloneSpec)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -1957,14 +1965,14 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 
 	newVM, err := finder.VirtualMachine(context.TODO(), vm.Path())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	log.Printf("[DEBUG] new vm: %v", newVM)
 
 	devices, err := newVM.Device(context.TODO())
 	if err != nil {
 		log.Printf("[DEBUG] Template devices can't be found")
-		return err
+		return nil, err
 	}
 
 	for _, dvc := range devices {
@@ -1972,7 +1980,7 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 		if devices.Type(dvc) == "ethernet" {
 			err := newVM.RemoveDevice(context.TODO(), false, dvc)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
@@ -1981,13 +1989,13 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 		err := newVM.AddDevice(
 			context.TODO(), dvc.GetVirtualDeviceConfigSpec().Device)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	// Create the cdroms if needed.
 	if err := createCdroms(c, newVM, dc, vm.cdroms); err != nil {
-		return err
+		return nil, err
 	}
 
 	newVM.Properties(context.TODO(), newVM.Reference(), []string{"summary", "config"}, &vm_mo)
@@ -2006,20 +2014,20 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 			snapshotFullDir := vm_mo.Config.Files.SnapshotDirectory
 			split := strings.Split(snapshotFullDir, " ")
 			if len(split) != 2 {
-				return fmt.Errorf("[ERROR] setupVirtualMachine - failed to split snapshot directory: %v", snapshotFullDir)
+				return nil, fmt.Errorf("[ERROR] setupVirtualMachine - failed to split snapshot directory: %v", snapshotFullDir)
 			}
 			vmWorkingPath := split[1]
 			diskPath = vmWorkingPath + vm.hardDisks[i].name
 		default:
-			return fmt.Errorf("[ERROR] setupVirtualMachine - Neither vmdk path nor vmdk name was given: %#v", vm.hardDisks[i])
+			return nil, fmt.Errorf("[ERROR] setupVirtualMachine - Neither vmdk path nor vmdk name was given: %#v", vm.hardDisks[i])
 		}
 		err = addHardDisk(newVM, vm.hardDisks[i].size, vm.hardDisks[i].iops, vm.hardDisks[i].initType, datastore, diskPath, vm.hardDisks[i].controller)
 		if err != nil {
 			err2 := addHardDisk(newVM, vm.hardDisks[i].size, vm.hardDisks[i].iops, vm.hardDisks[i].initType, datastore, diskPath, vm.hardDisks[i].controller)
 			if err2 != nil {
-				return err2
+				return nil, err2
 			}
-			return err
+			return nil, err
 		}
 	}
 
@@ -2034,7 +2042,7 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 			}
 			timeZone, err := strconv.Atoi(vm.timeZone)
 			if err != nil {
-				return fmt.Errorf("Error converting TimeZone: %s", err)
+				return nil, fmt.Errorf("Error converting TimeZone: %s", err)
 			}
 
 			guiUnattended := types.CustomizationGuiUnattended{
@@ -2100,11 +2108,11 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 		log.Printf("[DEBUG] VM customization starting")
 		taskb, err := newVM.Customize(context.TODO(), customSpec)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		_, err = taskb.WaitForResult(context.TODO(), nil)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		log.Printf("[DEBUG] VM customization finished")
 	}
@@ -2112,16 +2120,17 @@ func (vm *virtualMachine) setupVirtualMachine(c *govmomi.Client) error {
 	if vm.hasBootableVmdk || vm.template != "" {
 		t, err := newVM.PowerOn(context.TODO())
 		if err != nil {
-			return err
+			return nil, err
 		}
 		_, err = t.WaitForResult(context.TODO(), nil)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		err = newVM.WaitForPowerState(context.TODO(), types.VirtualMachinePowerStatePoweredOn)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return newVM.Reference().Value, nil
+
 }
