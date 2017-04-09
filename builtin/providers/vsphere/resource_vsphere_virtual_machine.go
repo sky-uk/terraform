@@ -903,9 +903,9 @@ func resourceVSphereVirtualMachineCreate(d *schema.ResourceData, meta interface{
 		log.Printf("[DEBUG] cdrom init: %v", cdroms)
 	}
 
-	// err := vm.setupVirtualMachine(client)
-	moid, err := vm.setupVirtualMachine(client)
-	d.Set("moid", moid)
+	_, err := vm.setupVirtualMachine(client)
+	//moid, err := vm.setupVirtualMachine(client)
+	//d.Set("moid", moid)
 	if err != nil {
 		return err
 	}
@@ -930,6 +930,11 @@ func resourceVSphereVirtualMachineRead(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		d.SetId("")
 		return nil
+	}
+
+	err = d.Set("moid", vm.Reference().Value)
+	if err != nil {
+		return fmt.Errorf("Invalid moid to set: %#v", vm.Reference().Value)
 	}
 
 	state, err := vm.PowerState(context.TODO())
@@ -1124,7 +1129,7 @@ func resourceVSphereVirtualMachineRead(d *schema.ResourceData, meta interface{})
 	d.Set("cpu", mvm.Summary.Config.NumCpu)
 	d.Set("datastore", rootDatastore)
 	d.Set("uuid", mvm.Summary.Config.Uuid)
-
+	d.Set("moid", mvm.Reference().Value)
 	return nil
 }
 
