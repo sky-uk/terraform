@@ -10,7 +10,7 @@ import (
 func resourceMonitor() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceMonitorCreate,
-		Read: 	resourceMonitorRead,
+		Read:   resourceMonitorRead,
 		//Update: resourceMonitorUpdate,
 		Delete: resourceMonitorDelete,
 
@@ -24,46 +24,55 @@ func resourceMonitor() *schema.Resource {
 			"delay": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"failures": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"verbose": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"use_ssl": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"http_host_header": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"http_path": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"http_authentication": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 			"http_body_regex": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 		},
@@ -116,7 +125,7 @@ func resourceMonitorCreate(d *schema.ResourceData, m interface{}) error {
 		return fmt.Errorf("Error: %+v", err)
 	}
 
-	if createAPI.StatusCode() != 201 && createAPI.StatusCode() != 200  {
+	if createAPI.StatusCode() != 201 && createAPI.StatusCode() != 200 {
 		return fmt.Errorf("Invalid HTTP response code %+v returned. Response object was %+v", createAPI.StatusCode(), createAPI.ResponseObject())
 	}
 

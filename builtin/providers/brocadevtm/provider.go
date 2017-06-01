@@ -22,7 +22,7 @@ func Provider() terraform.ResourceProvider {
 			"insecure": &schema.Schema{
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  os.Getenv("VTM_INSECURE"),
 			},
 			"vtm_user": &schema.Schema{
 				Type:     schema.TypeString,
