@@ -172,7 +172,7 @@ func resourceMonitorUpdate(d *schema.ResourceData, m interface{}) error {
 	vtmClient := m.(*brocadevtm.VTMClient)
 	var readName string
 	var updateMonitor monitor.Monitor
-	var hasChanges bool
+	hasChanges := false
 
 	if v, ok := d.GetOk("name"); ok {
 		readName = v.(string)
