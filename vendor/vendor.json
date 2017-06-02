@@ -2951,20 +2951,28 @@
 			"revisionTime": "2017-04-17T16:09:14Z"
 		},
 		{
-			"checksumSHA1": "Isz6Q1hnV7RKJC7OkoqGiKoGMXs=",
+			"checksumSHA1": "rEioGjeTvflo5gtPVWL74k8+qbw=",
 			"path": "github.com/sky-uk/go-brocade-vtm",
-			"revision": "4dec1b8666500b602e7dad80de3b8e2f72d8c139",
-			"revisionTime": "2017-06-01T15:24:18Z",
-			"version": "0.0.6",
-			"versionExact": "0.0.6"
+			"revision": "6b373a27fdc1c0023b951ab252ece0a864929d7e",
+			"revisionTime": "2017-06-02T13:39:08Z",
+			"version": "0.0.8",
+			"versionExact": "0.0.8"
 		},
 		{
 			"checksumSHA1": "X6qFg4o+aNcKGnh4kpfnnm+MJBQ=",
 			"path": "github.com/sky-uk/go-brocade-vtm/api",
-			"revision": "4dec1b8666500b602e7dad80de3b8e2f72d8c139",
-			"revisionTime": "2017-06-01T15:24:18Z",
-			"version": "0.0.6",
-			"versionExact": "0.0.6"
+			"revision": "6b373a27fdc1c0023b951ab252ece0a864929d7e",
+			"revisionTime": "2017-06-02T13:39:08Z",
+			"version": "0.0.8",
+			"versionExact": "0.0.8"
+		},
+		{
+			"checksumSHA1": "hHzx/w6QDtM6wEWWLGErSed6vc4=",
+			"path": "github.com/sky-uk/go-brocade-vtm/api/monitor",
+			"revision": "6b373a27fdc1c0023b951ab252ece0a864929d7e",
+			"revisionTime": "2017-06-02T13:39:08Z",
+			"version": "0.0.8",
+			"versionExact": "0.0.8"
 		},
 		{
 			"checksumSHA1": "8tEiK6vhVXuUbnWME5XNWLgvtSo=",

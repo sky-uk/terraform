@@ -25,7 +25,7 @@ func TestAccBrocadeVTMMonitorBasic(t *testing.T) {
 		CheckDestroy: testAccBrocadeVTMMonitorCheckDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBrocadeVTMMonitorBasicTemplate(monitorName),
+				Config: testAccBrocadeVTMMonitorCreateTemplate(monitorName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccBrocadeVTMMonitorExists(monitorName, monitorResourceName),
 					resource.TestCheckResourceAttr(monitorResourceName, "name", monitorName),
@@ -41,7 +41,7 @@ func TestAccBrocadeVTMMonitorBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBrocadeVTMMonitorAllTemplate(monitorName),
+				Config:testAccBrocadeVTMMonitorUpdateTemplate(monitorName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccBrocadeVTMMonitorExists(monitorName, monitorResourceName),
 					resource.TestCheckResourceAttr(monitorResourceName, "name", monitorName),
@@ -115,7 +115,7 @@ func testAccBrocadeVTMMonitorExists(monitorName, monitorResourceName string) res
 	}
 }
 
-func testAccBrocadeVTMMonitorBasicTemplate(monitorName string) string {
+func testAccBrocadeVTMMonitorCreateTemplate(monitorName string) string {
 	return fmt.Sprintf(`
 resource "brocadevtm_monitor" "acctest" {
   name = "%s"
@@ -125,7 +125,7 @@ resource "brocadevtm_monitor" "acctest" {
 `, monitorName)
 }
 
-func testAccBrocadeVTMMonitorAllTemplate(monitorName string) string {
+func testAccBrocadeVTMMonitorUpdateTemplate(monitorName string) string {
 	return fmt.Sprintf(`
 resource "brocadevtm_monitor" "acctest" {
   name = "%s"
