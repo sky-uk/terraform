@@ -19,7 +19,7 @@ please feel free to send the pull requests.
 ## Resources Implemented
 | Feature                 | Create | Read  | Update  | Delete |
 |-------------------------|--------|-------|---------|--------|
-| Monitor                 |   Y    |   Y   |    N    |   Y    |
+| Monitor                 |   Y    |   Y   |    Y    |   Y    |
 | Pools                   |   N    |   N   |    N    |   N    |
 | Traffic IP              |   N    |   N   |    N    |   N    |
 | Virtual Server          |   N    |   N   |    N    |   N    |

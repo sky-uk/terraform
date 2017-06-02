@@ -167,7 +167,6 @@ func resourceMonitorRead(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-
 func resourceMonitorUpdate(d *schema.ResourceData, m interface{}) error {
 
 	vtmClient := m.(*brocadevtm.VTMClient)
@@ -199,17 +198,13 @@ func resourceMonitorUpdate(d *schema.ResourceData, m interface{}) error {
 		hasChanges = true
 	}
 	if d.HasChange("verbose") {
-		if v, ok := d.GetOk("verbose"); ok {
-			monitorVerbosity := v.(bool)
-			updateMonitor.Properties.Basic.Verbose = &monitorVerbosity
-		}
+		monitorVerbosity := d.Get("verbose").(bool)
+		updateMonitor.Properties.Basic.Verbose = &monitorVerbosity
 		hasChanges = true
 	}
 	if d.HasChange("use_ssl") {
-		if v, ok := d.GetOk("use_ssl"); ok {
-			monitorSSL := v.(bool)
-			updateMonitor.Properties.Basic.UseSSL = &monitorSSL
-		}
+		monitorSSL := d.Get("use_ssl").(bool)
+		updateMonitor.Properties.Basic.UseSSL = &monitorSSL
 		hasChanges = true
 	}
 	if d.HasChange("http_host_header") {
@@ -257,7 +252,7 @@ func resourceMonitorDelete(d *schema.ResourceData, m interface{}) error {
 	var readName string
 
 	if v, ok := d.GetOk("name"); ok {
-			readName = v.(string)
+		readName = v.(string)
 	} else {
 		return fmt.Errorf("BrocadeVTM Delete Error: name argument required")
 	}

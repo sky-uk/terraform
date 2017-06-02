@@ -41,7 +41,7 @@ func TestAccBrocadeVTMMonitorBasic(t *testing.T) {
 				),
 			},
 			{
-				Config:testAccBrocadeVTMMonitorUpdateTemplate(monitorName),
+				Config: testAccBrocadeVTMMonitorUpdateTemplate(monitorName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccBrocadeVTMMonitorExists(monitorName, monitorResourceName),
 					resource.TestCheckResourceAttr(monitorResourceName, "name", monitorName),
