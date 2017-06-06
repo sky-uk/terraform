@@ -30,14 +30,14 @@ func TestAccBrocadeVTMMonitorBasic(t *testing.T) {
 					testAccBrocadeVTMMonitorExists(monitorName, monitorResourceName),
 					resource.TestCheckResourceAttr(monitorResourceName, "name", monitorName),
 					resource.TestCheckResourceAttr(monitorResourceName, "delay", "6"),
-					resource.TestCheckResourceAttr(monitorResourceName, "timeout", "3"),
-					resource.TestCheckResourceAttr(monitorResourceName, "failures", "3"),
+					resource.TestCheckResourceAttr(monitorResourceName, "timeout", "2"),
+					resource.TestCheckResourceAttr(monitorResourceName, "failures", "7"),
 					resource.TestCheckResourceAttr(monitorResourceName, "verbose", "true"),
-					resource.TestCheckResourceAttr(monitorResourceName, "use_ssl", "false"),
-					resource.TestCheckResourceAttr(monitorResourceName, "http_host_header", ""),
-					resource.TestCheckResourceAttr(monitorResourceName, "http_authentication", ""),
-					resource.TestCheckResourceAttr(monitorResourceName, "http_body_regex", ""),
-					resource.TestCheckResourceAttr(monitorResourceName, "http_path", "/"),
+					resource.TestCheckResourceAttr(monitorResourceName, "use_ssl", "true"),
+					resource.TestCheckResourceAttr(monitorResourceName, "http_host_header", "some_other_header"),
+					resource.TestCheckResourceAttr(monitorResourceName, "http_authentication", "admin:password"),
+					resource.TestCheckResourceAttr(monitorResourceName, "http_body_regex", "^ok"),
+					resource.TestCheckResourceAttr(monitorResourceName, "http_path", "/some/status/page"),
 				),
 			},
 			{
@@ -46,14 +46,14 @@ func TestAccBrocadeVTMMonitorBasic(t *testing.T) {
 					testAccBrocadeVTMMonitorExists(monitorName, monitorResourceName),
 					resource.TestCheckResourceAttr(monitorResourceName, "name", monitorName),
 					resource.TestCheckResourceAttr(monitorResourceName, "delay", "5"),
-					resource.TestCheckResourceAttr(monitorResourceName, "timeout", "3"),
+					resource.TestCheckResourceAttr(monitorResourceName, "timeout", "5"),
 					resource.TestCheckResourceAttr(monitorResourceName, "failures", "9"),
 					resource.TestCheckResourceAttr(monitorResourceName, "verbose", "false"),
 					resource.TestCheckResourceAttr(monitorResourceName, "use_ssl", "false"),
 					resource.TestCheckResourceAttr(monitorResourceName, "http_host_header", "some_header"),
 					resource.TestCheckResourceAttr(monitorResourceName, "http_authentication", "some_authentication"),
-					resource.TestCheckResourceAttr(monitorResourceName, "http_body_regex", "^ok"),
-					resource.TestCheckResourceAttr(monitorResourceName, "http_path", "/some/status/page"),
+					resource.TestCheckResourceAttr(monitorResourceName, "http_body_regex", "^healthy"),
+					resource.TestCheckResourceAttr(monitorResourceName, "http_path", "/some/other/status/page"),
 				),
 			},
 			{
@@ -120,7 +120,14 @@ func testAccBrocadeVTMMonitorCreateTemplate(monitorName string) string {
 resource "brocadevtm_monitor" "acctest" {
   name = "%s"
   delay = 6
+  timeout = 2
+  failures = 7
   verbose = true
+  use_ssl = true
+  http_host_header = "some_other_header"
+  http_authentication = "admin:password"
+  http_body_regex = "^ok"
+  http_path = "/some/status/page"
 }
 `, monitorName)
 }
@@ -130,14 +137,14 @@ func testAccBrocadeVTMMonitorUpdateTemplate(monitorName string) string {
 resource "brocadevtm_monitor" "acctest" {
   name = "%s"
   delay = 5
-  timeout = 3
+  timeout = 5
   failures = 9
   verbose = false
   use_ssl = false
   http_host_header = "some_header"
   http_authentication = "some_authentication"
-  http_body_regex = "^ok"
-  http_path = "/some/status/page"
+  http_body_regex = "^healthy"
+  http_path = "/some/other/status/page"
 }
 `, monitorName)
 }
